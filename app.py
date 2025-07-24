@@ -70,8 +70,125 @@ app.layout = html.Div([
     # Store for selected farm data
     dcc.Store(id='selected-farm-store'),
     
-    # Header with gradient
+    # Sidebar Navigation
     html.Div([
+        html.Div([
+            html.H2("🥛 UK Dairy", style={'color': 'white', 'textAlign': 'center', 'padding': '1rem 0'}),
+            html.Hr(style={'borderColor': 'rgba(255,255,255,0.2)'}),
+            
+            html.Div([
+                html.A([
+                    html.I(className="fas fa-home", style={'marginRight': '10px', 'width': '20px'}),
+                    "Dashboard"
+                ], href="#", className="nav-link active", style={
+                    'display': 'block',
+                    'padding': '0.75rem 1.5rem',
+                    'color': 'white',
+                    'textDecoration': 'none',
+                    'borderRadius': '8px',
+                    'marginBottom': '0.5rem',
+                    'backgroundColor': 'rgba(255,255,255,0.1)',
+                    'transition': 'all 0.3s'
+                }),
+                
+                html.A([
+                    html.I(className="fas fa-chart-bar", style={'marginRight': '10px', 'width': '20px'}),
+                    "Analytics"
+                ], href="#", className="nav-link", style={
+                    'display': 'block',
+                    'padding': '0.75rem 1.5rem',
+                    'color': 'rgba(255,255,255,0.8)',
+                    'textDecoration': 'none',
+                    'borderRadius': '8px',
+                    'marginBottom': '0.5rem',
+                    'transition': 'all 0.3s'
+                }),
+                
+                html.A([
+                    html.I(className="fas fa-leaf", style={'marginRight': '10px', 'width': '20px'}),
+                    "TNFD Metrics"
+                ], href="#", className="nav-link", style={
+                    'display': 'block',
+                    'padding': '0.75rem 1.5rem',
+                    'color': 'rgba(255,255,255,0.8)',
+                    'textDecoration': 'none',
+                    'borderRadius': '8px',
+                    'marginBottom': '0.5rem',
+                    'transition': 'all 0.3s'
+                }),
+                
+                html.A([
+                    html.I(className="fas fa-tractor", style={'marginRight': '10px', 'width': '20px'}),
+                    "Farms"
+                ], href="#", className="nav-link", style={
+                    'display': 'block',
+                    'padding': '0.75rem 1.5rem',
+                    'color': 'rgba(255,255,255,0.8)',
+                    'textDecoration': 'none',
+                    'borderRadius': '8px',
+                    'marginBottom': '0.5rem',
+                    'transition': 'all 0.3s'
+                }),
+                
+                html.A([
+                    html.I(className="fas fa-file-alt", style={'marginRight': '10px', 'width': '20px'}),
+                    "Reports"
+                ], href="#", className="nav-link", style={
+                    'display': 'block',
+                    'padding': '0.75rem 1.5rem',
+                    'color': 'rgba(255,255,255,0.8)',
+                    'textDecoration': 'none',
+                    'borderRadius': '8px',
+                    'marginBottom': '0.5rem',
+                    'transition': 'all 0.3s'
+                }),
+                
+                html.A([
+                    html.I(className="fas fa-cog", style={'marginRight': '10px', 'width': '20px'}),
+                    "Settings"
+                ], href="#", className="nav-link", style={
+                    'display': 'block',
+                    'padding': '0.75rem 1.5rem',
+                    'color': 'rgba(255,255,255,0.8)',
+                    'textDecoration': 'none',
+                    'borderRadius': '8px',
+                    'marginBottom': '0.5rem',
+                    'transition': 'all 0.3s'
+                })
+            ], style={'padding': '1rem'}),
+            
+            # User section at bottom
+            html.Div([
+                html.Hr(style={'borderColor': 'rgba(255,255,255,0.2)'}),
+                html.Div([
+                    html.I(className="fas fa-user-circle", style={'fontSize': '2rem', 'marginRight': '10px'}),
+                    html.Div([
+                        html.Div("Admin User", style={'fontWeight': 'bold'}),
+                        html.Div("admin@dairy.uk", style={'fontSize': '0.8rem', 'opacity': '0.8'})
+                    ])
+                ], style={'display': 'flex', 'alignItems': 'center', 'color': 'white', 'padding': '1rem'})
+            ], style={'position': 'absolute', 'bottom': '0', 'width': '100%'})
+        ], style={
+            'position': 'relative',
+            'height': '100vh',
+            'backgroundColor': '#1e40af',
+            'background': 'linear-gradient(180deg, #1e40af 0%, #059669 100%)',
+            'color': 'white'
+        })
+    ], style={
+        'position': 'fixed',
+        'top': '0',
+        'left': '0',
+        'width': '250px',
+        'height': '100vh',
+        'boxShadow': '2px 0 5px rgba(0,0,0,0.1)',
+        'zIndex': '1000'
+    }, className="sidebar"),
+    
+    # Main Content Area
+    html.Div([
+        # Header with gradient
+        html.Div([
         html.Div([
             html.Div([
                 html.H1("UK Dairy Processor", 
@@ -291,6 +408,7 @@ app.layout = html.Div([
             'boxShadow': '0 2px 4px rgba(0, 0, 0, 0.05)'
         })
     ], style={'padding': '2rem', 'backgroundColor': '#f9fafb'})
+    ], style={'marginLeft': '250px', 'minHeight': '100vh', 'transition': 'margin-left 0.3s ease'})
 ])
 
 # Callbacks

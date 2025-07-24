@@ -36,17 +36,35 @@ body {
 
 /* Fix for any potential sidebar */
 .sidebar {
-    position: fixed;
-    left: 0;
-    top: 0;
-    height: 100vh;
-    z-index: 1000;
+    position: fixed !important;
+    left: 0 !important;
+    top: 0 !important;
+    height: 100vh !important;
+    z-index: 1000 !important;
     transition: all 0.3s ease;
+    overflow-y: auto;
+}
+
+/* Sidebar link hover effects */
+.nav-link:hover {
+    background-color: rgba(255, 255, 255, 0.2) !important;
+    transform: translateX(5px);
+}
+
+.nav-link.active {
+    background-color: rgba(255, 255, 255, 0.2) !important;
+    font-weight: bold;
 }
 
 /* Main content area adjustment if sidebar exists */
 .main-content {
     transition: margin-left 0.3s ease;
+}
+
+/* Ensure sidebar is always visible */
+.sidebar * {
+    visibility: visible !important;
+    opacity: 1 !important;
 }
 
 /* Header gradient animation */
@@ -175,10 +193,11 @@ button:hover {
     }
 }
 
-/* Ensure visibility of all elements */
-* {
+/* Ensure sidebar visibility specifically */
+.sidebar, .sidebar * {
     opacity: 1 !important;
     visibility: visible !important;
+    display: block !important;
 }
 
 /* Debug helper - add borders to see layout */
