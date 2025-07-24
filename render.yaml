@@ -1,9 +1,9 @@
 services:
   - type: web
     name: uk-dairy-dashboard
-    runtime: node
-    buildCommand: npm install && npm run build
-    startCommand: npm start
+    runtime: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn app:server
     envVars:
-      - key: NODE_ENV
-        value: production
+      - key: PYTHON_VERSION
+        value: "3.11"
