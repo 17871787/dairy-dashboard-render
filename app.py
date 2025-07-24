@@ -73,8 +73,7 @@ app.layout = html.Div([
             html.Div([
                 html.Div([
                     html.Div(style={'width': '10px', 'height': '10px', 
-                                  'backgroundColor': '#10b981', 'borderRadius': '50%',
-                                  'animation': 'pulse 2s infinite'}),
+                                  'backgroundColor': '#10b981', 'borderRadius': '50%'}),
                     html.Span("TNFD Compliant", style={'marginLeft': '8px', 'color': 'white'})
                 ], style={'display': 'flex', 'alignItems': 'center', 'marginRight': '20px'}),
                 
@@ -281,16 +280,7 @@ app.layout = html.Div([
             'borderRadius': '12px',
             'boxShadow': '0 2px 4px rgba(0, 0, 0, 0.05)'
         })
-    ], style={'padding': '2rem', 'backgroundColor': '#f9fafb'}),
-    
-    # CSS for animations
-    html.Style("""
-        @keyframes pulse {
-            0% { opacity: 1; }
-            50% { opacity: .5; }
-            100% { opacity: 1; }
-        }
-    """)
+    ], style={'padding': '2rem', 'backgroundColor': '#f9fafb'})
 ])
 
 # Callbacks
