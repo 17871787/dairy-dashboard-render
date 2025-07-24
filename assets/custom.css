@@ -1,16 +1,23 @@
 /* Custom CSS for UK Dairy Dashboard */
 
 /* Reset and base styles */
+* {
+    box-sizing: border-box;
+}
+
 body {
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
     margin: 0;
     padding: 0;
     background-color: #f9fafb;
+    min-height: 100vh;
 }
 
 /* Improve Dash container */
 #react-entry-point {
     margin: 0;
+    width: 100%;
+    min-height: 100vh;
 }
 
 ._dash-loading {
@@ -19,6 +26,27 @@ body {
     width: 60px;
     height: 60px;
     margin-top: 100px;
+}
+
+/* Ensure proper layout structure */
+#_dash-app-content {
+    width: 100%;
+    min-height: 100vh;
+}
+
+/* Fix for any potential sidebar */
+.sidebar {
+    position: fixed;
+    left: 0;
+    top: 0;
+    height: 100vh;
+    z-index: 1000;
+    transition: all 0.3s ease;
+}
+
+/* Main content area adjustment if sidebar exists */
+.main-content {
+    transition: margin-left 0.3s ease;
 }
 
 /* Header gradient animation */
@@ -124,4 +152,36 @@ button:hover {
     .row > div[class*="col-"] {
         margin-bottom: 1rem;
     }
+    
+    /* Ensure sidebar is visible on mobile if it exists */
+    .sidebar {
+        width: 100% !important;
+        position: relative !important;
+        height: auto !important;
+    }
+    
+    /* Stack filters vertically on mobile */
+    div[style*="display: flex"] {
+        flex-direction: column !important;
+    }
+    
+    div[style*="width: 23%"],
+    div[style*="width: 24%"],
+    div[style*="width: 32%"],
+    div[style*="width: 49%"] {
+        width: 100% !important;
+        margin-right: 0 !important;
+        margin-bottom: 1rem !important;
+    }
+}
+
+/* Ensure visibility of all elements */
+* {
+    opacity: 1 !important;
+    visibility: visible !important;
+}
+
+/* Debug helper - add borders to see layout */
+.debug * {
+    border: 1px solid red !important;
 }

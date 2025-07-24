@@ -52,6 +52,11 @@ app = dash.Dash(__name__,
                 external_stylesheets=[
                     'https://codepen.io/chriddyp/pen/bWLwgP.css',
                     'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css'
+                ],
+                assets_folder='assets',  # Explicitly set assets folder
+                meta_tags=[
+                    {"name": "viewport", "content": "width=device-width, initial-scale=1"},
+                    {"charset": "UTF-8"}
                 ])
 
 # For deployment
