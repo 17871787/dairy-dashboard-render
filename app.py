@@ -1,5 +1,5 @@
 import dash
-from dash import dcc, html, Input, Output, dash_table, State, callback_context
+from dash import dcc, html, Input, Output, dash_table, State, callback_context, ALL
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 import pandas as pd
@@ -65,8 +65,271 @@ server = app.server
 # Generate the data
 farms_df = generate_farm_data()
 
+# Page layouts
+def get_dashboard_layout():
+    return html.Div([
+        # Header with gradient
+        html.Div([
+            html.Div([
+                html.Div([
+                    html.H1("UK Dairy Processor", 
+                            style={'color': 'white', 'margin': 0, 'fontSize': '2.5rem'}),
+                    html.P("Environmental Monitoring Dashboard", 
+                           style={'color': '#93c5fd', 'margin': 0, 'fontSize': '1.2rem'})
+                ], style={'flex': 1}),
+                
+                html.Div([
+                    html.Div([
+                        html.Div(className='pulse-dot', style={'width': '10px', 'height': '10px', 
+                                      'backgroundColor': '#10b981', 'borderRadius': '50%'}),
+                        html.Span("TNFD Compliant", style={'marginLeft': '8px', 'color': 'white'})
+                    ], style={'display': 'flex', 'alignItems': 'center', 'marginRight': '20px'}),
+                    
+                    html.Div([
+                        html.Span("270 Supplier Farms", style={'color': '#e0e7ff'})
+                    ], style={'marginRight': '20px'}),
+                    
+                    html.Div([
+                        html.Span(f"Last Updated: {datetime.now().strftime('%d/%m/%Y')}", 
+                                 style={'color': '#e0e7ff'})
+                    ])
+                ], style={'display': 'flex', 'alignItems': 'center'})
+            ], style={'display': 'flex', 'justifyContent': 'space-between', 'alignItems': 'center'})
+        ], style={
+            'background': 'linear-gradient(135deg, #1e40af 0%, #059669 100%)',
+            'padding': '2rem 3rem',
+            'boxShadow': '0 4px 6px rgba(0, 0, 0, 0.1)'
+        }),
+        
+        # Main content
+        html.Div([
+            # Filters Section
+            html.Div([
+                html.H3("Portfolio Filters", style={'marginBottom': '1.5rem', 'color': '#1f2937'}),
+                html.Div([
+                    html.Div([
+                        html.Label("Search Farms", style={'fontWeight': 'bold', 'marginBottom': '0.5rem', 'display': 'block'}),
+                        dcc.Input(
+                            id='search-input',
+                            type='text',
+                            placeholder='Farm name or ID...',
+                            style={'width': '100%', 'padding': '0.5rem', 'borderRadius': '6px', 
+                                   'border': '1px solid #d1d5db'}
+                        )
+                    ], style={'width': '23%', 'marginRight': '2%'}),
+                    
+                    html.Div([
+                        html.Label("Region", style={'fontWeight': 'bold', 'marginBottom': '0.5rem', 'display': 'block'}),
+                        dcc.Dropdown(
+                            id='region-dropdown',
+                            options=[{'label': 'All Regions', 'value': 'all'}] + 
+                                    [{'label': r, 'value': r} for r in farms_df['region'].unique()],
+                            value='all',
+                            style={'width': '100%'}
+                        )
+                    ], style={'width': '23%', 'marginRight': '2%'}),
+                    
+                    html.Div([
+                        html.Label("Supplier Tier", style={'fontWeight': 'bold', 'marginBottom': '0.5rem', 'display': 'block'}),
+                        dcc.Dropdown(
+                            id='tier-dropdown',
+                            options=[{'label': 'All Tiers', 'value': 'all'}] + 
+                                    [{'label': t, 'value': t} for t in farms_df['supplier_tier'].unique()],
+                            value='all',
+                            style={'width': '100%'}
+                        )
+                    ], style={'width': '23%', 'marginRight': '2%'}),
+                    
+                    html.Div([
+                        html.Label("Risk Level", style={'fontWeight': 'bold', 'marginBottom': '0.5rem', 'display': 'block'}),
+                        dcc.Dropdown(
+                            id='risk-dropdown',
+                            options=[
+                                {'label': 'All Risk Levels', 'value': 'all'},
+                                {'label': 'Low', 'value': 'Low'},
+                                {'label': 'Medium', 'value': 'Medium'},
+                                {'label': 'High', 'value': 'High'}
+                            ],
+                            value='all',
+                            style={'width': '100%'}
+                        )
+                    ], style={'width': '23%'})
+                ], style={'display': 'flex', 'justifyContent': 'space-between'}),
+                
+                # Filter summary
+                html.Div(id='filter-summary', style={'marginTop': '1rem', 'color': '#6b7280', 'fontSize': '0.9rem'})
+            ], style={
+                'padding': '2rem',
+                'backgroundColor': 'white',
+                'borderRadius': '12px',
+                'boxShadow': '0 2px 4px rgba(0, 0, 0, 0.05)',
+                'marginBottom': '2rem'
+            }),
+            
+            # Metrics Cards
+            html.Div(id='metrics-cards', style={'marginBottom': '2rem'}),
+            
+            # TNFD Metrics Section
+            html.Div([
+                html.Div([
+                    html.Div([
+                        html.Div([
+                            html.H4("🌿 Land Metrics", style={'color': '#059669', 'marginBottom': '1rem'}),
+                            html.Div(id='land-metrics-content')
+                        ], style={
+                            'backgroundColor': '#ecfdf5',
+                            'padding': '1.5rem',
+                            'borderRadius': '12px',
+                            'border': '1px solid #86efac'
+                        })
+                    ], style={'width': '32%'}),
+                    
+                    html.Div([
+                        html.Div([
+                            html.H4("💧 Water Metrics", style={'color': '#2563eb', 'marginBottom': '1rem'}),
+                            html.Div(id='water-metrics-content')
+                        ], style={
+                            'backgroundColor': '#eff6ff',
+                            'padding': '1.5rem',
+                            'borderRadius': '12px',
+                            'border': '1px solid #93c5fd'
+                        })
+                    ], style={'width': '32%'}),
+                    
+                    html.Div([
+                        html.Div([
+                            html.H4("🌳 Biodiversity Metrics", style={'color': '#7c3aed', 'marginBottom': '1rem'}),
+                            html.Div(id='biodiversity-metrics-content')
+                        ], style={
+                            'backgroundColor': '#f5f3ff',
+                            'padding': '1.5rem',
+                            'borderRadius': '12px',
+                            'border': '1px solid #c4b5fd'
+                        })
+                    ], style={'width': '32%'})
+                ], style={'display': 'flex', 'justifyContent': 'space-between', 'marginBottom': '2rem'})
+            ]),
+            
+            # Charts Section
+            html.Div([
+                html.Div([
+                    html.Div([
+                        html.H4("Regional Performance", style={'marginBottom': '1rem'}),
+                        dcc.Graph(id='regional-performance-chart')
+                    ], style={
+                        'backgroundColor': 'white',
+                        'padding': '1.5rem',
+                        'borderRadius': '12px',
+                        'boxShadow': '0 2px 4px rgba(0, 0, 0, 0.05)'
+                    })
+                ], style={'width': '49%'}),
+                
+                html.Div([
+                    html.Div([
+                        html.H4("Risk Assessment", style={'marginBottom': '1rem'}),
+                        dcc.Graph(id='risk-assessment-chart')
+                    ], style={
+                        'backgroundColor': 'white',
+                        'padding': '1.5rem',
+                        'borderRadius': '12px',
+                        'boxShadow': '0 2px 4px rgba(0, 0, 0, 0.05)'
+                    })
+                ], style={'width': '49%'})
+            ], style={'display': 'flex', 'justifyContent': 'space-between', 'marginBottom': '2rem'}),
+            
+            # Additional Charts
+            html.Div([
+                html.Div([
+                    html.Div([
+                        html.H4("Supplier Tier Distribution", style={'marginBottom': '1rem'}),
+                        dcc.Graph(id='tier-distribution-chart')
+                    ], style={
+                        'backgroundColor': 'white',
+                        'padding': '1.5rem',
+                        'borderRadius': '12px',
+                        'boxShadow': '0 2px 4px rgba(0, 0, 0, 0.05)'
+                    })
+                ], style={'width': '49%'}),
+                
+                html.Div([
+                    html.Div([
+                        html.H4("Environmental Scheme Enrollment", style={'marginBottom': '1rem'}),
+                        dcc.Graph(id='scheme-enrollment-chart')
+                    ], style={
+                        'backgroundColor': 'white',
+                        'padding': '1.5rem',
+                        'borderRadius': '12px',
+                        'boxShadow': '0 2px 4px rgba(0, 0, 0, 0.05)'
+                    })
+                ], style={'width': '49%'})
+            ], style={'display': 'flex', 'justifyContent': 'space-between', 'marginBottom': '2rem'}),
+            
+            # Farm Table
+            html.Div([
+                html.Div([
+                    html.H3("Supplier Farm Overview", style={'flex': 1}),
+                    html.Div([
+                        html.Button("Export Data", id='export-btn', 
+                                   style={'marginRight': '1rem', 'padding': '0.5rem 1rem',
+                                         'border': '1px solid #d1d5db', 'borderRadius': '6px',
+                                         'backgroundColor': 'white', 'cursor': 'pointer'}),
+                        html.Button("Add Farm", id='add-farm-btn',
+                                   style={'padding': '0.5rem 1rem', 'backgroundColor': '#10b981',
+                                         'color': 'white', 'border': 'none', 'borderRadius': '6px',
+                                         'cursor': 'pointer'})
+                    ])
+                ], style={'display': 'flex', 'justifyContent': 'space-between', 'alignItems': 'center',
+                         'marginBottom': '1rem'}),
+                
+                html.Div(id='farm-table-container')
+            ], style={
+                'backgroundColor': 'white',
+                'padding': '2rem',
+                'borderRadius': '12px',
+                'boxShadow': '0 2px 4px rgba(0, 0, 0, 0.05)'
+            })
+        ], style={'padding': '2rem', 'backgroundColor': '#f9fafb'})
+    ])
+
+def get_analytics_layout():
+    return html.Div([
+        html.H1("Analytics", style={'marginBottom': '2rem'}),
+        html.P("Detailed analytics and insights coming soon...", style={'fontSize': '1.2rem', 'color': '#6b7280'}),
+        # Add analytics content here
+    ], style={'padding': '2rem'})
+
+def get_tnfd_layout():
+    return html.Div([
+        html.H1("TNFD Metrics", style={'marginBottom': '2rem'}),
+        html.P("Task Force on Nature-related Financial Disclosures metrics...", style={'fontSize': '1.2rem', 'color': '#6b7280'}),
+        # Add TNFD content here
+    ], style={'padding': '2rem'})
+
+def get_farms_layout():
+    return html.Div([
+        html.H1("Farms Management", style={'marginBottom': '2rem'}),
+        html.P("Manage and view individual farm details...", style={'fontSize': '1.2rem', 'color': '#6b7280'}),
+        # Add farms management content here
+    ], style={'padding': '2rem'})
+
+def get_reports_layout():
+    return html.Div([
+        html.H1("Reports", style={'marginBottom': '2rem'}),
+        html.P("Generate and download reports...", style={'fontSize': '1.2rem', 'color': '#6b7280'}),
+        # Add reports content here
+    ], style={'padding': '2rem'})
+
+def get_settings_layout():
+    return html.Div([
+        html.H1("Settings", style={'marginBottom': '2rem'}),
+        html.P("Configure dashboard settings...", style={'fontSize': '1.2rem', 'color': '#6b7280'}),
+        # Add settings content here
+    ], style={'padding': '2rem'})
+
 # Define the layout with enhanced styling
 app.layout = html.Div([
+    # Location component for URL routing
+    dcc.Location(id='url', refresh=False),
     # Store for selected farm data
     dcc.Store(id='selected-farm-store'),
     
@@ -80,7 +343,7 @@ app.layout = html.Div([
                 html.A([
                     html.I(className="fas fa-home", style={'marginRight': '10px', 'width': '20px'}),
                     "Dashboard"
-                ], href="#", className="nav-link active", style={
+                ], href="/", className="nav-link", id="nav-dashboard", style={
                     'display': 'block',
                     'padding': '0.75rem 1.5rem',
                     'color': 'white',
@@ -94,7 +357,7 @@ app.layout = html.Div([
                 html.A([
                     html.I(className="fas fa-chart-bar", style={'marginRight': '10px', 'width': '20px'}),
                     "Analytics"
-                ], href="#", className="nav-link", style={
+                ], href="/analytics", className="nav-link", id="nav-analytics", style={
                     'display': 'block',
                     'padding': '0.75rem 1.5rem',
                     'color': 'rgba(255,255,255,0.8)',
@@ -107,7 +370,7 @@ app.layout = html.Div([
                 html.A([
                     html.I(className="fas fa-leaf", style={'marginRight': '10px', 'width': '20px'}),
                     "TNFD Metrics"
-                ], href="#", className="nav-link", style={
+                ], href="/tnfd-metrics", className="nav-link", id="nav-tnfd", style={
                     'display': 'block',
                     'padding': '0.75rem 1.5rem',
                     'color': 'rgba(255,255,255,0.8)',
@@ -120,7 +383,7 @@ app.layout = html.Div([
                 html.A([
                     html.I(className="fas fa-tractor", style={'marginRight': '10px', 'width': '20px'}),
                     "Farms"
-                ], href="#", className="nav-link", style={
+                ], href="/farms", className="nav-link", id="nav-farms", style={
                     'display': 'block',
                     'padding': '0.75rem 1.5rem',
                     'color': 'rgba(255,255,255,0.8)',
@@ -133,7 +396,7 @@ app.layout = html.Div([
                 html.A([
                     html.I(className="fas fa-file-alt", style={'marginRight': '10px', 'width': '20px'}),
                     "Reports"
-                ], href="#", className="nav-link", style={
+                ], href="/reports", className="nav-link", id="nav-reports", style={
                     'display': 'block',
                     'padding': '0.75rem 1.5rem',
                     'color': 'rgba(255,255,255,0.8)',
@@ -146,7 +409,7 @@ app.layout = html.Div([
                 html.A([
                     html.I(className="fas fa-cog", style={'marginRight': '10px', 'width': '20px'}),
                     "Settings"
-                ], href="#", className="nav-link", style={
+                ], href="/settings", className="nav-link", id="nav-settings", style={
                     'display': 'block',
                     'padding': '0.75rem 1.5rem',
                     'color': 'rgba(255,255,255,0.8)',
@@ -185,233 +448,70 @@ app.layout = html.Div([
         'zIndex': '1000'
     }, className="sidebar"),
     
-    # Main Content Area
-    html.Div([
-        # Header with gradient
-        html.Div([
-        html.Div([
-            html.Div([
-                html.H1("UK Dairy Processor", 
-                        style={'color': 'white', 'margin': 0, 'fontSize': '2.5rem'}),
-                html.P("Environmental Monitoring Dashboard", 
-                       style={'color': '#93c5fd', 'margin': 0, 'fontSize': '1.2rem'})
-            ], style={'flex': 1}),
-            
-            html.Div([
-                html.Div([
-                    html.Div(className='pulse-dot', style={'width': '10px', 'height': '10px', 
-                                  'backgroundColor': '#10b981', 'borderRadius': '50%'}),
-                    html.Span("TNFD Compliant", style={'marginLeft': '8px', 'color': 'white'})
-                ], style={'display': 'flex', 'alignItems': 'center', 'marginRight': '20px'}),
-                
-                html.Div([
-                    html.Span("270 Supplier Farms", style={'color': '#e0e7ff'})
-                ], style={'marginRight': '20px'}),
-                
-                html.Div([
-                    html.Span(f"Last Updated: {datetime.now().strftime('%d/%m/%Y')}", 
-                             style={'color': '#e0e7ff'})
-                ])
-            ], style={'display': 'flex', 'alignItems': 'center'})
-        ], style={'display': 'flex', 'justifyContent': 'space-between', 'alignItems': 'center'})
-    ], style={
-        'background': 'linear-gradient(135deg, #1e40af 0%, #059669 100%)',
-        'padding': '2rem 3rem',
-        'boxShadow': '0 4px 6px rgba(0, 0, 0, 0.1)'
-    }),
-    
-    # Main content
-    html.Div([
-        # Filters Section
-        html.Div([
-            html.H3("Portfolio Filters", style={'marginBottom': '1.5rem', 'color': '#1f2937'}),
-            html.Div([
-                html.Div([
-                    html.Label("Search Farms", style={'fontWeight': 'bold', 'marginBottom': '0.5rem', 'display': 'block'}),
-                    dcc.Input(
-                        id='search-input',
-                        type='text',
-                        placeholder='Farm name or ID...',
-                        style={'width': '100%', 'padding': '0.5rem', 'borderRadius': '6px', 
-                               'border': '1px solid #d1d5db'}
-                    )
-                ], style={'width': '23%', 'marginRight': '2%'}),
-                
-                html.Div([
-                    html.Label("Region", style={'fontWeight': 'bold', 'marginBottom': '0.5rem', 'display': 'block'}),
-                    dcc.Dropdown(
-                        id='region-dropdown',
-                        options=[{'label': 'All Regions', 'value': 'all'}] + 
-                                [{'label': r, 'value': r} for r in farms_df['region'].unique()],
-                        value='all',
-                        style={'width': '100%'}
-                    )
-                ], style={'width': '23%', 'marginRight': '2%'}),
-                
-                html.Div([
-                    html.Label("Supplier Tier", style={'fontWeight': 'bold', 'marginBottom': '0.5rem', 'display': 'block'}),
-                    dcc.Dropdown(
-                        id='tier-dropdown',
-                        options=[{'label': 'All Tiers', 'value': 'all'}] + 
-                                [{'label': t, 'value': t} for t in farms_df['supplier_tier'].unique()],
-                        value='all',
-                        style={'width': '100%'}
-                    )
-                ], style={'width': '23%', 'marginRight': '2%'}),
-                
-                html.Div([
-                    html.Label("Risk Level", style={'fontWeight': 'bold', 'marginBottom': '0.5rem', 'display': 'block'}),
-                    dcc.Dropdown(
-                        id='risk-dropdown',
-                        options=[
-                            {'label': 'All Risk Levels', 'value': 'all'},
-                            {'label': 'Low', 'value': 'Low'},
-                            {'label': 'Medium', 'value': 'Medium'},
-                            {'label': 'High', 'value': 'High'}
-                        ],
-                        value='all',
-                        style={'width': '100%'}
-                    )
-                ], style={'width': '23%'})
-            ], style={'display': 'flex', 'justifyContent': 'space-between'}),
-            
-            # Filter summary
-            html.Div(id='filter-summary', style={'marginTop': '1rem', 'color': '#6b7280', 'fontSize': '0.9rem'})
-        ], style={
-            'padding': '2rem',
-            'backgroundColor': 'white',
-            'borderRadius': '12px',
-            'boxShadow': '0 2px 4px rgba(0, 0, 0, 0.05)',
-            'marginBottom': '2rem'
-        }),
-        
-        # Metrics Cards
-        html.Div(id='metrics-cards', style={'marginBottom': '2rem'}),
-        
-        # TNFD Metrics Section
-        html.Div([
-            html.Div([
-                html.Div([
-                    html.Div([
-                        html.H4("🌿 Land Metrics", style={'color': '#059669', 'marginBottom': '1rem'}),
-                        html.Div(id='land-metrics-content')
-                    ], style={
-                        'backgroundColor': '#ecfdf5',
-                        'padding': '1.5rem',
-                        'borderRadius': '12px',
-                        'border': '1px solid #86efac'
-                    })
-                ], style={'width': '32%'}),
-                
-                html.Div([
-                    html.Div([
-                        html.H4("💧 Water Metrics", style={'color': '#2563eb', 'marginBottom': '1rem'}),
-                        html.Div(id='water-metrics-content')
-                    ], style={
-                        'backgroundColor': '#eff6ff',
-                        'padding': '1.5rem',
-                        'borderRadius': '12px',
-                        'border': '1px solid #93c5fd'
-                    })
-                ], style={'width': '32%'}),
-                
-                html.Div([
-                    html.Div([
-                        html.H4("🌳 Biodiversity Metrics", style={'color': '#7c3aed', 'marginBottom': '1rem'}),
-                        html.Div(id='biodiversity-metrics-content')
-                    ], style={
-                        'backgroundColor': '#f5f3ff',
-                        'padding': '1.5rem',
-                        'borderRadius': '12px',
-                        'border': '1px solid #c4b5fd'
-                    })
-                ], style={'width': '32%'})
-            ], style={'display': 'flex', 'justifyContent': 'space-between', 'marginBottom': '2rem'})
-        ]),
-        
-        # Charts Section
-        html.Div([
-            html.Div([
-                html.Div([
-                    html.H4("Regional Performance", style={'marginBottom': '1rem'}),
-                    dcc.Graph(id='regional-performance-chart')
-                ], style={
-                    'backgroundColor': 'white',
-                    'padding': '1.5rem',
-                    'borderRadius': '12px',
-                    'boxShadow': '0 2px 4px rgba(0, 0, 0, 0.05)'
-                })
-            ], style={'width': '49%'}),
-            
-            html.Div([
-                html.Div([
-                    html.H4("Risk Assessment", style={'marginBottom': '1rem'}),
-                    dcc.Graph(id='risk-assessment-chart')
-                ], style={
-                    'backgroundColor': 'white',
-                    'padding': '1.5rem',
-                    'borderRadius': '12px',
-                    'boxShadow': '0 2px 4px rgba(0, 0, 0, 0.05)'
-                })
-            ], style={'width': '49%'})
-        ], style={'display': 'flex', 'justifyContent': 'space-between', 'marginBottom': '2rem'}),
-        
-        # Additional Charts
-        html.Div([
-            html.Div([
-                html.Div([
-                    html.H4("Supplier Tier Distribution", style={'marginBottom': '1rem'}),
-                    dcc.Graph(id='tier-distribution-chart')
-                ], style={
-                    'backgroundColor': 'white',
-                    'padding': '1.5rem',
-                    'borderRadius': '12px',
-                    'boxShadow': '0 2px 4px rgba(0, 0, 0, 0.05)'
-                })
-            ], style={'width': '49%'}),
-            
-            html.Div([
-                html.Div([
-                    html.H4("Environmental Scheme Enrollment", style={'marginBottom': '1rem'}),
-                    dcc.Graph(id='scheme-enrollment-chart')
-                ], style={
-                    'backgroundColor': 'white',
-                    'padding': '1.5rem',
-                    'borderRadius': '12px',
-                    'boxShadow': '0 2px 4px rgba(0, 0, 0, 0.05)'
-                })
-            ], style={'width': '49%'})
-        ], style={'display': 'flex', 'justifyContent': 'space-between', 'marginBottom': '2rem'}),
-        
-        # Farm Table
-        html.Div([
-            html.Div([
-                html.H3("Supplier Farm Overview", style={'flex': 1}),
-                html.Div([
-                    html.Button("Export Data", id='export-btn', 
-                               style={'marginRight': '1rem', 'padding': '0.5rem 1rem',
-                                     'border': '1px solid #d1d5db', 'borderRadius': '6px',
-                                     'backgroundColor': 'white', 'cursor': 'pointer'}),
-                    html.Button("Add Farm", id='add-farm-btn',
-                               style={'padding': '0.5rem 1rem', 'backgroundColor': '#10b981',
-                                     'color': 'white', 'border': 'none', 'borderRadius': '6px',
-                                     'cursor': 'pointer'})
-                ])
-            ], style={'display': 'flex', 'justifyContent': 'space-between', 'alignItems': 'center',
-                     'marginBottom': '1rem'}),
-            
-            html.Div(id='farm-table-container')
-        ], style={
-            'backgroundColor': 'white',
-            'padding': '2rem',
-            'borderRadius': '12px',
-            'boxShadow': '0 2px 4px rgba(0, 0, 0, 0.05)'
-        })
-    ], style={'padding': '2rem', 'backgroundColor': '#f9fafb'})
-    ], style={'marginLeft': '250px', 'minHeight': '100vh', 'transition': 'margin-left 0.3s ease'})
+    # Main Content Area  
+    html.Div(id='page-content', style={'marginLeft': '250px', 'minHeight': '100vh', 'transition': 'margin-left 0.3s ease'})
 ])
 
-# Callbacks
+# Routing callback
+@app.callback(
+    [Output('page-content', 'children'),
+     Output('nav-dashboard', 'style'),
+     Output('nav-analytics', 'style'),
+     Output('nav-tnfd', 'style'),
+     Output('nav-farms', 'style'),
+     Output('nav-reports', 'style'),
+     Output('nav-settings', 'style')],
+    [Input('url', 'pathname')]
+)
+def display_page(pathname):
+    # Default styles
+    active_style = {
+        'display': 'block',
+        'padding': '0.75rem 1.5rem',
+        'color': 'white',
+        'textDecoration': 'none',
+        'borderRadius': '8px',
+        'marginBottom': '0.5rem',
+        'backgroundColor': 'rgba(255,255,255,0.2)',
+        'transition': 'all 0.3s'
+    }
+    
+    inactive_style = {
+        'display': 'block',
+        'padding': '0.75rem 1.5rem',
+        'color': 'rgba(255,255,255,0.8)',
+        'textDecoration': 'none',
+        'borderRadius': '8px',
+        'marginBottom': '0.5rem',
+        'transition': 'all 0.3s'
+    }
+    
+    # Initialize all styles as inactive
+    styles = [inactive_style] * 6
+    
+    # Determine which page to show and which nav item to highlight
+    if pathname == '/analytics':
+        page_content = get_analytics_layout()
+        styles[1] = active_style
+    elif pathname == '/tnfd-metrics':
+        page_content = get_tnfd_layout()
+        styles[2] = active_style
+    elif pathname == '/farms':
+        page_content = get_farms_layout()
+        styles[3] = active_style
+    elif pathname == '/reports':
+        page_content = get_reports_layout()
+        styles[4] = active_style
+    elif pathname == '/settings':
+        page_content = get_settings_layout()
+        styles[5] = active_style
+    else:  # Default to dashboard
+        page_content = get_dashboard_layout()
+        styles[0] = active_style
+    
+    return [page_content] + styles
+
+# Original callbacks
 @app.callback(
     [Output('metrics-cards', 'children'),
      Output('land-metrics-content', 'children'),
