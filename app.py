@@ -47,7 +47,12 @@ def generate_farm_data():
     return pd.DataFrame(farms)
 
 # Initialize the Dash app
-app = dash.Dash(__name__, suppress_callback_exceptions=True)
+app = dash.Dash(__name__, 
+                suppress_callback_exceptions=True,
+                external_stylesheets=[
+                    'https://codepen.io/chriddyp/pen/bWLwgP.css',
+                    'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css'
+                ])
 
 # For deployment
 server = app.server
@@ -72,7 +77,7 @@ app.layout = html.Div([
             
             html.Div([
                 html.Div([
-                    html.Div(style={'width': '10px', 'height': '10px', 
+                    html.Div(className='pulse-dot', style={'width': '10px', 'height': '10px', 
                                   'backgroundColor': '#10b981', 'borderRadius': '50%'}),
                     html.Span("TNFD Compliant", style={'marginLeft': '8px', 'color': 'white'})
                 ], style={'display': 'flex', 'alignItems': 'center', 'marginRight': '20px'}),

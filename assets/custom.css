@@ -1,0 +1,127 @@
+/* Custom CSS for UK Dairy Dashboard */
+
+/* Reset and base styles */
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #f9fafb;
+}
+
+/* Improve Dash container */
+#react-entry-point {
+    margin: 0;
+}
+
+._dash-loading {
+    margin: auto;
+    color: #119DFF;
+    width: 60px;
+    height: 60px;
+    margin-top: 100px;
+}
+
+/* Header gradient animation */
+@keyframes gradient {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+/* Status dot animation */
+@keyframes pulse {
+    0% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.5; transform: scale(0.9); }
+    100% { opacity: 1; transform: scale(1); }
+}
+
+.pulse-dot {
+    animation: pulse 2s infinite;
+}
+
+/* Card hover effects */
+.dash-table-container {
+    font-family: inherit;
+}
+
+.dash-spreadsheet-container .dash-spreadsheet-inner th {
+    background-color: #f3f4f6;
+    font-weight: 600;
+    text-align: left;
+    padding: 1rem;
+    border-bottom: 2px solid #e5e7eb;
+}
+
+.dash-spreadsheet-container .dash-spreadsheet-inner td {
+    padding: 1rem;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.dash-spreadsheet-container .dash-spreadsheet-inner tr:hover {
+    background-color: #f9fafb;
+}
+
+/* Dropdown styling */
+.Select-control {
+    border: 1px solid #d1d5db !important;
+    border-radius: 6px !important;
+}
+
+.Select-control:hover {
+    border-color: #9ca3af !important;
+}
+
+.Select.is-focused .Select-control {
+    border-color: #3b82f6 !important;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1) !important;
+}
+
+/* Input styling */
+input[type="text"] {
+    width: 100%;
+    padding: 0.5rem;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    font-size: 1rem;
+    transition: all 0.2s;
+}
+
+input[type="text"]:focus {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+/* Button styling */
+button {
+    cursor: pointer;
+    transition: all 0.2s;
+    font-family: inherit;
+}
+
+button:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+/* Chart improvements */
+.js-plotly-plot .plotly {
+    border-radius: 8px;
+}
+
+/* Metric card hover */
+.metric-card {
+    transition: all 0.3s ease;
+}
+
+.metric-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+    .row > div[class*="col-"] {
+        margin-bottom: 1rem;
+    }
+}
